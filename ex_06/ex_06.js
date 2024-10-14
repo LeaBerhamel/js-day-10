@@ -1,33 +1,24 @@
-// On déclare une fonction worker avec pour paramètres task et timeRequired
+// On déclare la fonction worker avec comme paramètres task et timeRequired
 function worker(task, timeRequired) {
-    // On retourne une nouvelle Promise qui prend une fonction de callback avec message
-    return new Promise(function(message) {
-    // On utilise setTimeout pour attendre timeRequired millisecondes
-        setTimeout(function() {
-    // On appelle message pour résoudre la promesse avec le message "<task> done" (sans espaces supplémentaires avec trim())
-             message(`${task.trim()} done`);
-        }, timeRequired);
-    });
-}
-     
-// On déclare une fonction asynchrone factory qui prend tasks comme argument (un objet contenant la liste des tâches)
-async function factory(tasks) {
-// On récupère la liste des tâches dans l'objet tasks sous forme d'un tableau
-    const taskList = tasks['tasks'];
-    // On déclare un tableau promises qui stockera toutes les promesses des tâches
-    const promises = [];
-    
-    // On répète sur chaque tâche, on extrait task et timeRequired, puis on crée une promesse à l'aide de la fonction worker() et l'ajoute au tableau promises
-    for (let i = 0; i < taskList.length; i++) {
-        const task = taskList[i]['task'];
-        const timeRequired = parseInt(taskList[i]['timeRequired']);
-        promises.push(worker(task, timeRequired));
-    }
-     
-    // On répète sur chaque promesse dans promises, puis utilise .then() pour afficher le message lorsqu'une tâche est terminée
-    for (const taskPromise of promises) {
-        taskPromise.then(function(message) {
-            console.log(message);
+    // On retourne une nouvelle promesse qui résout une tâche après un délai
+        return new Promise(function(resolve) {
+            setTimeout(function() {
+                resolve(`${task} done`);
+            }, timeRequired);
         });
     }
-}
+     
+    // On déclare la fonction asynchrone factory avec comme paramètre tasks, qui distribue les tâches aux travailleurs
+    async function factory(tasks) {
+        const taskList = tasks['tasks'];
+     
+    // On traite chaque tâche indépendamment et les unes après les autres, grâce à la boucle for, jusqu'à ce qu'elles se terminent
+        for (let i = 0; i < taskList.length; i++) {
+            const task = taskList[i]['task'];
+            const timeRequired = parseInt(taskList[i]['timeRequired']);
+    // On attend la résolution de chaque travailleur et on affiche le résultat dans la console
+            worker(task, timeRequired).then(function(message) {
+                console.log(message);
+            });
+        }
+    }
